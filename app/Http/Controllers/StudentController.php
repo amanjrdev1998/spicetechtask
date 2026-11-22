@@ -123,17 +123,45 @@ class StudentController extends Controller
     {
         $student = Student::with('detail')->findOrFail($id);
 
-        $exists = Student::on('mysql_new')->where('email', $student->email)->first();
+        $exists = Student::on('mysql_new')->where('email', $student->email)
+            ->orWhere('admission_no', $student->admission_no)->first();
 
         if ($exists) {
+            $exists->name = $student->name;
+            $exists->email = $student->email;
+            $exists->phone = $student->phone;
+            $exists->class = $student->class;
+            $exists->admission_no = $student->admission_no;
+            $exists->save();
+
+            $newDetail = StudentDetail::on('mysql_new')->where('student_id', $exists->id)->first();
+
+            if (! $newDetail) {
+                $newDetail = new StudentDetail();
+                $newDetail->setConnection('mysql_new');
+                $newDetail->student_id = $exists->id;
+            }
+
+            $newDetail->date_of_birth = $student->detail->date_of_birth;
+            $newDetail->gender = $student->detail->gender;
+            $newDetail->address = $student->detail->address;
+            $newDetail->city = $student->detail->city;
+            $newDetail->state = $student->detail->state;
+            $newDetail->pincode = $student->detail->pincode;
+            $newDetail->guardian_name = $student->detail->guardian_name;
+            $newDetail->guardian_phone = $student->detail->guardian_phone;
+            $newDetail->save();
+
+            Mail::to($student->email)->queue(new StudentCopiedMail($student));
+
             if ($request->wantsJson() || $request->ajax()) {
                 return response()->json([
-                    'message' => 'Student already exists in new school.',
+                    'message' => 'Student already existed in new school - details updated and mail queued.',
                     'copied' => true,
                 ], 200);
             }
 
-            return redirect()->route('students.index')->with('success', 'Student already exists in new school.');
+            return redirect()->route('students.index')->with('success', 'Student already existed in new school - details updated and mail queued.');
         }
 
         $newStudent = new Student();

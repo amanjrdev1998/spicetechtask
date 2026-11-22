@@ -14,8 +14,10 @@ Copy button on the list page, so every row shows a working Copy button.
   both tables in one transaction.
 - Copy button on each row copies that single student (+ details) into the NEW
   school database. If the student already exists in new_school (checked by
-  email), it is skipped. On copy, a queued mail is sent to the student's email
-  with the message "your Record copied to new School".
+  email or admission number), the record is updated instead of copied again,
+  so changing a student's email and copying again never fails. On copy, a
+  queued mail is sent to the student's email with the message
+  "your Record copied to new School".
 - The Add Student form, the student list and the Copy buttons all work with
   AJAX (fetch), so the page does not reload. The list loads from the JSON
   endpoint `GET /students/data` and has a live search box that filters by
