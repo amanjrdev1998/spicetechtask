@@ -5,11 +5,17 @@ namespace Database\Seeders;
 use App\Models\Student;
 use App\Models\StudentDetail;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
 
 class StudentSeeder extends Seeder
 {
     public function run(): void
     {
+        DB::connection('mysql_new')->table('student_details')->delete();
+        DB::connection('mysql_new')->table('students')->delete();
+        DB::connection('mysql_old')->table('student_details')->delete();
+        DB::connection('mysql_old')->table('students')->delete();
+
         $students = [
             [
                 'name' => 'Aryan Choudhary',
@@ -1537,32 +1543,6 @@ class StudentSeeder extends Seeder
                 'guardian_name' => $data['guardian_name'],
                 'guardian_phone' => $data['guardian_phone'],
             ]);
-        }
-
-        $oldStudents = Student::with('detail')->orderBy('name', 'desc')->get();
-
-        foreach ($oldStudents as $oldStudent) {
-            $newStudent = new Student();
-            $newStudent->setConnection('mysql_new');
-            $newStudent->name = $oldStudent->name;
-            $newStudent->email = $oldStudent->email;
-            $newStudent->phone = $oldStudent->phone;
-            $newStudent->class = $oldStudent->class;
-            $newStudent->admission_no = $oldStudent->admission_no;
-            $newStudent->save();
-
-            $newDetail = new StudentDetail();
-            $newDetail->setConnection('mysql_new');
-            $newDetail->student_id = $newStudent->id;
-            $newDetail->date_of_birth = $oldStudent->detail->date_of_birth;
-            $newDetail->gender = $oldStudent->detail->gender;
-            $newDetail->address = $oldStudent->detail->address;
-            $newDetail->city = $oldStudent->detail->city;
-            $newDetail->state = $oldStudent->detail->state;
-            $newDetail->pincode = $oldStudent->detail->pincode;
-            $newDetail->guardian_name = $oldStudent->detail->guardian_name;
-            $newDetail->guardian_phone = $oldStudent->detail->guardian_phone;
-            $newDetail->save();
         }
     }
 }
